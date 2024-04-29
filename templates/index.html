@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <title>Bucket | List</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        .img {
+            width: 100%;
+            height: 250px;
+            background-image: linear-gradient(0deg, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('https://images.unsplash.com/photo-1601024445121-e5b82f020549?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=1189&q=80');
+            background-position: center;
+            background-size: cover;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .img>p {
+            font-size: 40px;
+        }
+
+        .content,
+        .view_list {
+            width: 95%;
+            max-width: 700px;
+            margin: 20px auto;
+            padding: 20px;
+            box-shadow: 0px 0px 10px 0px lightblue;
+        }
+
+        .label {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        #floatingInput {
+            width: 70%;
+        }
+
+        .view_list>li {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 0px;
+            min-height: 48px;
+        }
+        .view_list>li>#btn1{
+            margin-right: 10px;
+        }
+
+        .view_list>li>h2 {
+            max-width: 75%;
+            font-size: 20px;
+            font-weight: 500;
+            margin-right: auto;
+            margin-bottom: 0px;
+        }
+
+        .view_list>li>h2.done {
+            text-decoration: line-through;
+        }
+    </style>
+    <script>
+        $(document).ready(function () {
+            $.ajax({
+                type: 'GET',
+                url: '/bucket',
+                data: {},
+                success: function (response) {
+                    let dbcount_use = response['dbcount']
+                    console.log(response['msg']);
+                    console.log(typeof(dbcount_use));
+                    if (dbcount_use === 0) {
+                        temp_html = `
+                            <h2>You Don't Hava Any Bucket List</h2>
+                            `;
+                    }
+                    $('#add-bucket').append(temp_html);
+                }
+            });
+            show_bucket();
+
+        });
+        function show_bucket() {
+            $.ajax({
+                type: 'GET',
+                url: '/bucket',
+                data: {},
+                success: function (response) {
+                    // alert(response['msg'])
+                    let rows = response['bkt_list']
+                    for (let i = 0; i < rows.length; i++) {
+                        let name = rows[i]['bucket']
+                        let num = rows[i]['num']
+                        let done = rows[i]['done']
+
+                        // temp_html = `
+
+                        // `;
+
+                        if (done === 0) {
+                            temp_html = `
+                            <li>
+                                <h2>✅ ${name}</h2>
+                                <button onclick="done_bucket(${num})" type="button" id = "btn1" class="btn btn-outline-primary">Done!</button>
+                                <button onclick="delete_list(${num})" type="button" class="btn btn-outline-danger">Delete</button>
+                            </li>    
+                            `;
+                        } else {
+                            temp_html = `
+                            <li>
+                                <h2 class="done">✅ ${name}</h2>
+                                <button onclick="delete_list(${num})" type="button" class="btn btn-outline-danger">Delete</button>
+                            </li>    
+                            `;
+                        }
+                        $('#add-bucket').append(temp_html);
+                    }
+                }
+            });
+        }
+        function delete_list(num) {
+            $.ajax({
+                type: 'POST',
+                url: '/delete',
+                data: { list_give: num },
+                success: function (response) {
+                    alert(response['msg']);
+                    window.location.reload();
+                }
+            });
+        }
+        function save_bucket() {
+            let list = $('#floatingInput').val()
+            $.ajax({
+                type: 'POST',
+                url: '/bucket',
+                data: { bucket_give: list },
+                success: function (response) {
+                    alert(response['msg']);
+                    window.location.reload();
+                }
+            });
+        }
+        function done_bucket(num) {
+            $.ajax({
+                type: 'POST',
+                url: '/bucket/done',
+                data: { num_give: num },
+                success: function (response) {
+                    alert(response['msg']);
+                    window.location.reload();
+                }
+            });
+        }
+    </script>
+</head>
+
+<body>
+    <div class="img">
+        <p>My BucketList</p>
+    </div>
+
+    <section class="content">
+        <div class="label">
+            <input type="email" class="form-control" id="floatingInput" placeholder="Enter Your Bucklist Item here">
+            <button onclick="save_bucket()" type="button" class="btn btn-outline-primary">Save</button>
+        </div>
+    </section>
+
+    <div class="view_list" id="add-bucket">
+
+    </div>
+</body>
+
+</html>
